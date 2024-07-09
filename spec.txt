@@ -1,0 +1,67 @@
+1. Matching Engine
+    - Keep track of orders in its order book and cross incoming orders with existing orders
+    - Incoming buy (bid) orders are crossed against sell (offer) orders, and vice versa
+    - A match occurs if and only if the buy price is equal to or greater than the sell price of the crossed order
+    - A match results in an executed trade, and the matched amount is reduced from the amount remaining on both of the crossed orders.
+    If an order has no amount remaining, it is removed from the order book.
+    - The matching engine is a CLOB (see Wiki and fastercapital website)
+    - It uses price-time priority. That means that if two orders are at the same price, preference is given to the oldest order first
+    - Each matching engine handles orders for a single instrument
+    - The matching engine may accept or reject each order, a rejected order is not placed in the order book.
+    - An order is accepted unless:
+        - The price is outside the valid trading range (100.0, 200.0) or
+        - The amount is larger than 100
+    - Each order may exist in the order book for up to 5 seconds once placed, similating a "Good Till Time" order type
+    - After the 5 seconds, any order that is not fully matched is cancelled (Removed from book)
+    - Trading Agents can't replace or cancel an order
+    - No requirement to compute or distribute any market data from the Matching Data.
+
+2. Trading Agent
+    - Randomly generates orders over time and submits them to Matching Engines
+    - Each trading agents submits orders for multiple instruments
+    - Orders are generated as independent random events with an average rate defined when the agent is created.
+    - The properties of each order are randomised:
+        - Buy/Sell direction
+        - Price (within 90.0 - 210.0, precision of 0.1)
+        - Amount (within 1, 110)
+
+There may be multiple instances of each component, but only one matching engine per instrument
+
+The simulator must model the interaction between the two components, ensuring that orders for each instrument are delivered to the correct matching engine
+
+3. Expose a public interface for the library that allows:
+    - One or more matching engines and trading agents to be defined by the user
+    - simulation to be run in real-time
+    - callbacks to be registered by user code that are invoked by the simulator when:
+        - An order is accepted by a matching engine (with order details)
+        - An order is rejected by a matching engine (with order details)
+        - A Trade occurs with the details of the trade
+
+Concerns:
+- Encapsulate components and organise code appropriately
+- Include functional tests
+- Consider performance with respect to algorithmic complexity
+- Write efficient code but no need to optimise latency as measured by wall clock time
+- No requirement ti be multi-threaded, but threads and "async" concurrency are permitted.
+
+
+Matching Engine:
+Variables:
+- Order Book (List/Queue) - One buy/One sell? (Of orders)
+- instrument
+
+Order:
+- Identity of the originating Trading Agent
+- An instrument identifier (symbol)
+- A buy or sell direction
+- A limit price
+- An amount
+
+Trading Agent:
+Variables:
+- Average rate of orders
+- 
+
+Can have other "system components"
+Use poisson for number of events per time and then randomly distribute these over the second.
+Can have same random seed for initial order contents
